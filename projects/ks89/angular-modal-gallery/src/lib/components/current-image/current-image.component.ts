@@ -150,9 +150,6 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
   @ViewChild('originImage', { static: true })
   originImage: ElementRef;
 
-  @ViewChild('zoomedImage', { static: true })
-  zoomedImage: ElementRef;
-
   lensX: number;
   lensY: number;
 
@@ -160,6 +157,8 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
   zoomMax = 4;
   zoomDelta = 0.2;
   zoomMin = 1.0;
+
+  isLensFreezed: boolean;
 
   /**
    * Subject to play modal-gallery.
@@ -730,34 +729,36 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
   }
 
   moveLens(e) {
-    let pos, x, y;
-    /*prevent any other actions that may occur when moving over the image:*/
-    e.preventDefault();
-    /*get the cursor's x and y positions:*/
-    pos = this.getCursorPos(e);
-    /*calculate the position of the lens:*/
-    const lensWidth = 50;
-    const lensHeight = 50;
-    x = pos.x - lensWidth / 2;
-    y = pos.y - lensHeight / 2;
-    /*prevent the lens from being positioned outside the image:*/
-    if (x > this.originImage.nativeElement.width - lensWidth) {
-      x = this.originImage.nativeElement.width - lensWidth;
-    }
-    if (x < 0) {
-      x = 0;
-    }
-    if (y > this.originImage.nativeElement.height - lensHeight) {
-      y = this.originImage.nativeElement.height - lensHeight;
-    }
-    if (y < 0) {
-      y = 0;
-    }
+    if (!this.isLensFreezed) {
+      let pos, x, y;
+      /*prevent any other actions that may occur when moving over the image:*/
+      e.preventDefault();
+      /*get the cursor's x and y positions:*/
+      pos = this.getCursorPos(e);
+      /*calculate the position of the lens:*/
+      const lensWidth = 50;
+      const lensHeight = 50;
+      x = pos.x - lensWidth / 2;
+      y = pos.y - lensHeight / 2;
+      /*prevent the lens from being positioned outside the image:*/
+      if (x > this.originImage.nativeElement.width - lensWidth) {
+        x = this.originImage.nativeElement.width - lensWidth;
+      }
+      if (x < 0) {
+        x = 0;
+      }
+      if (y > this.originImage.nativeElement.height - lensHeight) {
+        y = this.originImage.nativeElement.height - lensHeight;
+      }
+      if (y < 0) {
+        y = 0;
+      }
 
-    this.lensX = -(pos.x * this.zoomCurrent - pos.x);
-    this.lensY = -(pos.y * this.zoomCurrent - pos.y);
+      this.lensX = -(pos.x * this.zoomCurrent - pos.x);
+      this.lensY = -(pos.y * this.zoomCurrent - pos.y);
 
-    this.ref.markForCheck();
+      this.ref.markForCheck();
+    }
   }
 
   private getCursorPos(e) {
@@ -789,5 +790,10 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
   zoomOut(e) {
     e.stopPropagation();
     this.zoomCurrent = Math.max(this.zoomCurrent - this.zoomDelta, this.zoomMin);
+  }
+
+  toggleLensMove(event) {
+    event.stopPropagation();
+    this.isLensFreezed = !this.isLensFreezed;
   }
 }

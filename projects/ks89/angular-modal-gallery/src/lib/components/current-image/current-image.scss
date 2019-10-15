@@ -126,6 +126,7 @@ $figcaption-right: 0;
       top: 0;
       left: 0;
       z-index: 10001;
+      cursor: default;
     }
 
 
@@ -194,5 +195,20 @@ $figcaption-right: 0;
   &:hover {
     background-color: rgba(0, 0, 0, 0.42);
     cursor: pointer;
+  }
+}
+
+.zoom-pin {
+  z-index: 10002;
+  color: white;
+  font-size: 26px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 5px 15px;
+  background-color: rgba(0,0,0,0.5);
+
+  .fa {
+    transform: rotate(45deg);
   }
 }

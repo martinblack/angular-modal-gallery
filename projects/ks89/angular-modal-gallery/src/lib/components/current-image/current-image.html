@@ -35,6 +35,13 @@
 
 
   <figure id="current-figure" [style.display]="loading ? 'none' : ''">
+
+    <div class="zoom-pin" *ngIf="isLensFreezed">
+      <i class="fa fa-thumb-tack" aria-hidden="true"></i>
+    </div>
+
+
+
     <img id="current-image"
          #originImage
          class="inside current-image"
@@ -51,7 +58,6 @@
          (mouseenter)="enableZoom()"
     />
     <div
-         #zoomedImage
          *ngIf="showZoom"
          class="current-image zoomed-image"
          [style.width.px]="originImage.offsetWidth"
@@ -60,6 +66,7 @@
          [style.backgroundSize]="(originImage.width * zoomCurrent) + 'px ' + (originImage.height * zoomCurrent) + 'px'"
          [style.backgroundPositionX.px]="lensX"
          [style.backgroundPositionY.px]="lensY"
+         (click)="toggleLensMove($event)"
          (mousemove)="moveLens($event)"
          (wheel)="changeZoomLevel($event)"
     ></div>
