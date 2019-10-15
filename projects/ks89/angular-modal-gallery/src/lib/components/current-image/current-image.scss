@@ -27,7 +27,7 @@ $main-img-container-margin-bottom: 20px;
 
 $curr-img-max-width-trick: 70vw;
 $curr-img-max-width: 80vw;
-$curr-img-max-height: 60vh;
+$curr-img-max-height: 80vh;
 
 $nav-animation-time: 1s;
 $nav-transition-time: .5s;
@@ -104,13 +104,28 @@ $figcaption-right: 0;
     margin: 0; // => Removes margin from every figure to prevent problem when resizing horizontally on tablets and smartphones
     position: relative;
 
-    > #current-image {
-      // display: block;
-      // don't use this
-      // Bootstrap 4 img-fluid class uses max-width: 100% and height: auto
-      max-width: 100%;
-      height: auto;
+
+    .current-image {
       display: block;
+      height: auto;
+      // Thanks to vh ad vw I can resize the image when reducing browser's window both vertically and horizontally
+      max-width: $curr-img-max-width;
+      max-height: $curr-img-max-height;
+      cursor: pointer;
+
+      // trick found here https://stackoverflow.com/a/37600130/3590376
+      // Using a media query I can set a max width
+      @media screen and (min-width: $curr-img-max-width-trick) {
+        // Thanks to vh ad vw I can resize the image when reducing browser's window both vertically and horizontally
+        max-width: $curr-img-max-width-trick;
+      }
+    }
+
+    .zoomed-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10001;
     }
 
 
@@ -120,6 +135,7 @@ $figcaption-right: 0;
       bottom: $figcaption-bottom;
       left: $figcaption-left;
       right: $figcaption-right;
+      z-index: 10002;
 
       .description {
         font-weight: bold;
@@ -127,35 +143,6 @@ $figcaption-right: 0;
       }
     }
   }
-}
-
-#current-image {
-  height: auto;
-  // Thanks to vh ad vw I can resize the image when reducing browser's window both vertically and horizontally
-  max-width: $curr-img-max-width;
-  max-height: $curr-img-max-height;
-  cursor: pointer;
-
-  // trick found here https://stackoverflow.com/a/37600130/3590376
-  // Using a media query I can set a max width
-  @media screen and (min-width: $curr-img-max-width-trick) {
-    // Thanks to vh ad vw I can resize the image when reducing browser's window both vertically and horizontally
-    max-width: $curr-img-max-width-trick;
-  }
-
-  //&.rotate0,
-  //&.rotate360 {
-  //  transform-origin: top left;
-  //}
-  //&.rotate90 {
-  //  transform: rotate(90deg); // translateY(-100%);
-  //}
-  //&.rotate180 {
-  //  transform: rotate(180deg); // translate(-100%, -100%);
-  //}
-  //&.rotate270 {
-  //  transform: rotate(270deg); // translateX(-100%);
-  //}
 }
 
 @mixin fadein($opacity-from, $opacity-to) {
@@ -181,4 +168,31 @@ $figcaption-right: 0;
 
 @keyframes fadein-semi-visible09 {
   @include fadein(0, .9);
+}
+
+.img-zoom-lens {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  /*set the size of the lens:*/
+  width: 40px;
+  height: 40px;
+}
+
+.img-zoom-result {
+  border: 1px solid #d4d4d4;
+  position: absolute;
+  top: 0px;
+  /*set the size of the result div:*/
+  width: 300px;
+  height: 240px;
+}
+
+.zoom-btn {
+ padding: 10px;
+  border: 1px solid white;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.42);
+    cursor: pointer;
+  }
 }

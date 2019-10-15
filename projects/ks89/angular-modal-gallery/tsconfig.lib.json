@@ -11,15 +11,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "types": [
-      "node",
-      "mousetrap",
-      "hammerjs"
-    ],
-    "lib": [
-      "dom",
-      "es2018"
-    ]
+    "types": ["node", "mousetrap", "hammerjs"],
+    "lib": ["dom", "es2018"]
   },
   "angularCompilerOptions": {
     "annotateForClosureCompiler": true,
@@ -29,8 +22,11 @@
     "strictInjectionParameters": true,
     "enableResourceInlining": true
   },
-  "exclude": [
-    "src/test.ts",
-    "**/*.spec.ts"
-  ]
+  "exclude": ["src/test.ts", "**/*.spec.ts"],
+  "paths": {
+    "@angular/*": ["../node_modules/@angular/*"],
+    "hammerjs": ["../node_modules/hammerjs"],
+    "mousetrap": ["../node_modules/mousetrap"],
+    "rxjs/*": ["../node_modules/rxjs/*"]
+  }
 }

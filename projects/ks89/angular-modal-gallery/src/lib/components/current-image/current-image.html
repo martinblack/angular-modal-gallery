@@ -36,7 +36,8 @@
 
   <figure id="current-figure" [style.display]="loading ? 'none' : ''">
     <img id="current-image"
-         class="inside"
+         #originImage
+         class="inside current-image"
          [ngClass]="'rotate' + (currentImage.modal && currentImage.modal.angle ? currentImage.modal.angle : '0')"
          [src]="currentImage.modal.img"
          [attr.aria-label]="currentImage.modal.ariaLabel"
@@ -46,11 +47,31 @@
          (load)="onImageLoad($event)"
          (click)="onImageEvent($event, clickAction)" (keyup)="onImageEvent($event, keyboardAction)"
          (swipeleft)="swipe($event.type)"
-         (swiperight)="swipe($event.type)"/>
-    <figcaption *ngIf="getDescriptionToDisplay() !== ''"
-                class="inside description"
-                ksDescription [description]="configCurrentImage?.description"
-                [innerHTML]="getDescriptionToDisplay()">
+         (swiperight)="swipe($event.type)"
+         (mouseenter)="enableZoom()"
+    />
+    <div
+         #zoomedImage
+         *ngIf="showZoom"
+         class="current-image zoomed-image"
+         [style.width.px]="originImage.offsetWidth"
+         [style.height.px]="originImage.offsetHeight"
+         [style.backgroundImage]="'url(' + originImage.src + ')'"
+         [style.backgroundSize]="(originImage.width * zoomCurrent) + 'px ' + (originImage.height * zoomCurrent) + 'px'"
+         [style.backgroundPositionX.px]="lensX"
+         [style.backgroundPositionY.px]="lensY"
+         (mousemove)="moveLens($event)"
+         (wheel)="changeZoomLevel($event)"
+    ></div>
+
+    <figcaption *ngIf="getDescriptionToDisplay() !== ''" class="inside description d-flex justify-between align-center" ksDescription [description]="configCurrentImage?.description">
+      <span [innerHTML]="getDescriptionToDisplay()"></span>
+      <div class="zoom-btns align-self-flex-end">
+        <i class="fa fa-minus zoom-btn" (click)="zoomOut($event)"></i>
+        <span class="current-zoom-level m-l-10 m-r-10">{{zoomCurrent | number:'1.1-1'}}x</span>
+        <i class="fa fa-plus zoom-btn" (click)="zoomIn($event)"></i>
+      </div>
+
     </figcaption>
   </figure>
 

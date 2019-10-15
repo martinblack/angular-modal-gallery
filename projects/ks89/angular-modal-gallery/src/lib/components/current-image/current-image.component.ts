@@ -27,6 +27,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   EventEmitter,
   HostListener,
   Inject,
@@ -38,7 +39,8 @@ import {
   Output,
   PLATFORM_ID,
   SimpleChange,
-  SimpleChanges
+  SimpleChanges,
+  ViewChild
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
@@ -142,6 +144,22 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
    */
   @Output()
   close: EventEmitter<ImageModalEvent> = new EventEmitter<ImageModalEvent>();
+
+  showZoom: boolean;
+
+  @ViewChild('originImage', { static: true })
+  originImage: ElementRef;
+
+  @ViewChild('zoomedImage', { static: true })
+  zoomedImage: ElementRef;
+
+  lensX: number;
+  lensY: number;
+
+  zoomCurrent = 1.0;
+  zoomMax = 4;
+  zoomDelta = 0.2;
+  zoomMin = 1.0;
 
   /**
    * Subject to play modal-gallery.
@@ -704,5 +722,72 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
     if (this.isOpen) {
       this.handleBoundaries(index);
     }
+  }
+
+  enableZoom() {
+    this.showZoom = true;
+    this.ref.markForCheck();
+  }
+
+  moveLens(e) {
+    let pos, x, y;
+    /*prevent any other actions that may occur when moving over the image:*/
+    e.preventDefault();
+    /*get the cursor's x and y positions:*/
+    pos = this.getCursorPos(e);
+    /*calculate the position of the lens:*/
+    const lensWidth = 50;
+    const lensHeight = 50;
+    x = pos.x - lensWidth / 2;
+    y = pos.y - lensHeight / 2;
+    /*prevent the lens from being positioned outside the image:*/
+    if (x > this.originImage.nativeElement.width - lensWidth) {
+      x = this.originImage.nativeElement.width - lensWidth;
+    }
+    if (x < 0) {
+      x = 0;
+    }
+    if (y > this.originImage.nativeElement.height - lensHeight) {
+      y = this.originImage.nativeElement.height - lensHeight;
+    }
+    if (y < 0) {
+      y = 0;
+    }
+
+    this.lensX = -(pos.x * this.zoomCurrent - pos.x);
+    this.lensY = -(pos.y * this.zoomCurrent - pos.y);
+
+    this.ref.markForCheck();
+  }
+
+  private getCursorPos(e) {
+    let a,
+      x = 0,
+      y = 0;
+    e = e || window.event;
+    /*get the x and y positions of the image:*/
+    a = this.originImage.nativeElement.getBoundingClientRect();
+    /*calculate the cursor's x and y coordinates, relative to the image:*/
+    x = e.pageX - a.left;
+    y = e.pageY - a.top;
+    /*consider any page scrolling:*/
+    x = x - window.pageXOffset;
+    y = y - window.pageYOffset;
+    return { x: x, y: y };
+  }
+
+  changeZoomLevel($event: WheelEvent) {
+    $event.deltaY < 0 ? this.zoomIn($event) : this.zoomOut($event);
+    this.moveLens($event);
+  }
+
+  zoomIn(e) {
+    e.stopPropagation();
+    this.zoomCurrent = Math.min(this.zoomCurrent + this.zoomDelta, this.zoomMax);
+  }
+
+  zoomOut(e) {
+    e.stopPropagation();
+    this.zoomCurrent = Math.max(this.zoomCurrent - this.zoomDelta, this.zoomMin);
   }
 }
