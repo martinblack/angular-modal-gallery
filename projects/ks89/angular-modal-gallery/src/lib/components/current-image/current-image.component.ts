@@ -308,8 +308,12 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
     const el = document.getElementById('zoomedImage');
     const move$ = fromEvent(el, 'mousemove');
     const down$ = fromEvent(el, 'mousedown');
-    const up$ = fromEvent(el, 'mouseup');
-    up$.pipe(tap(() => (this.mouseDragging = false)));
+    const up$ = fromEvent(el, 'mouseup').pipe(
+      tap(() => {
+        this.mouseDragging = false;
+        this.ref.markForCheck();
+      })
+    );
 
     const mouseDrag$ = down$.pipe(
       tap((down: MouseEvent) => {
