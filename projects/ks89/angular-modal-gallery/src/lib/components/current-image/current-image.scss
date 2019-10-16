@@ -127,6 +127,14 @@ $figcaption-right: 0;
       left: 0;
       z-index: 10001;
       cursor: default;
+
+      &.grab {
+        cursor: grab;
+      }
+
+      &.grabbing {
+        cursor: grabbing;
+      }
     }
 
 

@@ -58,8 +58,10 @@
          (mouseenter)="enableZoom()"
     />
     <div
-         *ngIf="showZoom"
+        id="zoomedImage"
          class="current-image zoomed-image"
+        [class.grab]="this.isLensFreezed"
+        [class.grabbing]="this.mouseDrag"
          [style.width.px]="originImage.offsetWidth"
          [style.height.px]="originImage.offsetHeight"
          [style.backgroundImage]="'url(' + originImage.src + ')'"
@@ -69,6 +71,7 @@
          (click)="toggleLensMove($event)"
          (mousemove)="moveLens($event)"
          (wheel)="changeZoomLevel($event)"
+         (dragend)="dragLens($event)"
     ></div>
 
     <figcaption *ngIf="getDescriptionToDisplay() !== ''" class="inside description d-flex justify-between align-center" ksDescription [description]="configCurrentImage?.description">
