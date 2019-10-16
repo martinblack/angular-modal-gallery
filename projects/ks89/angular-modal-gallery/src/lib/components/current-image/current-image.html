@@ -36,42 +36,32 @@
 
   <figure id="current-figure" [style.display]="loading ? 'none' : ''">
 
-    <div class="zoom-pin" *ngIf="isLensFreezed">
-      <i class="fa fa-thumb-tack" aria-hidden="true"></i>
-    </div>
-
-
-
     <img id="current-image"
          #originImage
          class="inside current-image"
          [ngClass]="'rotate' + (currentImage.modal && currentImage.modal.angle ? currentImage.modal.angle : '0')"
-         [src]="currentImage.modal.img"
          [attr.aria-label]="currentImage.modal.ariaLabel"
          [title]="currentImage.modal.title ? currentImage.modal.title : getTitleToDisplay()"
          alt="{{currentImage.modal.alt ? currentImage.modal.alt : getAltDescriptionByImage()}}"
          [tabindex]="0" role="img"
+         [src]="currentImage.modal.img"
          (load)="onImageLoad($event)"
          (click)="onImageEvent($event, clickAction)" (keyup)="onImageEvent($event, keyboardAction)"
          (swipeleft)="swipe($event.type)"
          (swiperight)="swipe($event.type)"
-         (mouseenter)="enableZoom()"
+         (wheel)="onwheel($event)"
     />
     <div
         id="zoomedImage"
          class="current-image zoomed-image"
-        [class.grab]="this.isLensFreezed"
-        [class.grabbing]="this.mouseDrag"
+         [class.grabbing]="this.mouseDragging"
          [style.width.px]="originImage.offsetWidth"
          [style.height.px]="originImage.offsetHeight"
          [style.backgroundImage]="'url(' + originImage.src + ')'"
-         [style.backgroundSize]="(originImage.width * zoomCurrent) + 'px ' + (originImage.height * zoomCurrent) + 'px'"
-         [style.backgroundPositionX.px]="lensX"
-         [style.backgroundPositionY.px]="lensY"
-         (click)="toggleLensMove($event)"
-         (mousemove)="moveLens($event)"
-         (wheel)="changeZoomLevel($event)"
-         (dragend)="dragLens($event)"
+        [style.backgroundSize]="bgWidth + 'px ' + bgHeight + 'px'"
+        [style.backgroundPositionX.px]="bgPosX"
+        [style.backgroundPositionY.px]="bgPosY"
+         (wheel)="onwheel($event)"
     ></div>
 
     <figcaption *ngIf="getDescriptionToDisplay() !== ''" class="inside description d-flex justify-between align-center" ksDescription [description]="configCurrentImage?.description">

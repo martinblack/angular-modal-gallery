@@ -24,6 +24,7 @@
 
 import {
   AfterContentInit,
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -62,6 +63,7 @@ import { SlideConfig } from '../../model/slide-config.interface';
 import { NEXT, PREV } from '../../utils/user-input.util';
 import { getIndex } from '../../utils/image.util';
 import { CurrentImageConfig } from '../../model/current-image-config.interface';
+import { settings } from 'cluster';
 
 /**
  * Interface to describe the Load Event, used to
@@ -82,7 +84,7 @@ export interface ImageLoadEvent {
   templateUrl: 'current-image.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CurrentImageComponent extends AccessibleComponent implements OnInit, OnChanges, AfterContentInit, OnDestroy {
+export class CurrentImageComponent extends AccessibleComponent implements OnInit, OnChanges, AfterContentInit, OnDestroy, AfterViewInit {
   /**
    * Unique id (>=0) of the current instance of this library. This is useful when you are using
    * the service to call modal gallery without open it manually.
@@ -153,20 +155,25 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
   lensX: number;
   lensY: number;
 
-  zoomCurrent = 1.0;
+  zoomInitial = 1;
+  zoomCurrent = 1;
   zoomMax = 4;
-  zoomDelta = 0.2;
+  zoomDelta = 0.1;
   zoomMin = 1.0;
 
-  isLensFreezed: boolean;
-  mouseDrag: boolean;
+  imageWidth: number;
+  imageHeight: number;
+  bgWidth: number;
+  bgHeight: number;
+  bgPosX: number;
+  bgPosY: number;
+  initialX = 0.5;
+  initialY = 0.5;
+
+  mouseDragging: boolean;
   dragStart: MouseEvent;
-  private dragSlowCoeficient = 20;
 
-  lastPosition: MouseEvent;
-
-  private lensWidth = 50;
-  private lensHeight = 50;
+  previousEvent: MouseEvent;
 
   /**
    * Subject to play modal-gallery.
@@ -294,38 +301,44 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
 
     this.configSlide = Object.assign({}, this.slideConfig);
 
-    const el = document.getElementById('zoomedImage');
+    this.initImageDrag();
+  }
 
+  private initImageDrag() {
+    const el = document.getElementById('zoomedImage');
     const move$ = fromEvent(el, 'mousemove');
     const down$ = fromEvent(el, 'mousedown');
     const up$ = fromEvent(el, 'mouseup');
+    up$.pipe(tap(() => (this.mouseDragging = false)));
 
     const mouseDrag$ = down$.pipe(
       tap((down: MouseEvent) => {
-        this.dragStart = down;
-        this.mouseDrag = false;
+        this.previousEvent = down;
+        this.mouseDragging = true;
       }),
       mergeMap(down => move$.pipe(takeUntil(up$)))
     );
 
     mouseDrag$.subscribe((mouseMove: MouseEvent) => {
-      this.mouseDrag = true;
-
-      let xDelta = (mouseMove.x - this.dragStart.x) / (this.dragSlowCoeficient * this.zoomCurrent);
-      let yDelta = (mouseMove.y - this.dragStart.y) / (this.dragSlowCoeficient * this.zoomCurrent);
-
-      xDelta =
-        xDelta > 0
-          ? Math.min(Math.abs(this.lensX), xDelta)
-          : -1 * Math.min(Math.abs(xDelta), this.originImage.nativeElement.width * this.zoomCurrent + this.lensX - this.originImage.nativeElement.width);
-      yDelta =
-        yDelta > 0
-          ? Math.min(Math.abs(this.lensY), yDelta)
-          : -1 * Math.min(Math.abs(yDelta), this.originImage.nativeElement.height * this.zoomCurrent + this.lensY - this.originImage.nativeElement.height);
-
-      this.lensX = this.lensX + xDelta;
-      this.lensY = this.lensY + yDelta;
+      mouseMove.preventDefault();
+      this.bgPosX += mouseMove.pageX - this.previousEvent.pageX;
+      this.bgPosY += mouseMove.pageY - this.previousEvent.pageY;
+      this.previousEvent = mouseMove;
+      this.updateBgStyle();
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.initImageZoom();
+  }
+
+  private initImageZoom() {
+    this.imageWidth = this.originImage.nativeElement.width;
+    this.imageHeight = this.originImage.nativeElement.height;
+    this.bgWidth = this.imageWidth * this.zoomInitial;
+    this.bgHeight = this.imageHeight * this.zoomInitial;
+    this.bgPosX = -(this.bgWidth - this.imageWidth) * this.initialX;
+    this.bgPosY = -(this.bgHeight - this.imageHeight) * this.initialY;
   }
 
   /**
@@ -767,42 +780,6 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
     }
   }
 
-  enableZoom() {
-    this.showZoom = true;
-    this.ref.markForCheck();
-  }
-
-  moveLens(e) {
-    if (!this.isLensFreezed) {
-      let pos, x, y;
-      /*prevent any other actions that may occur when moving over the image:*/
-      e.preventDefault();
-      /*get the cursor's x and y positions:*/
-      pos = this.getCursorPos(e);
-      /*calculate the position of the lens:*/
-      x = pos.x - this.lensWidth / 2;
-      y = pos.y - this.lensHeight / 2;
-      /*prevent the lens from being positioned outside the image:*/
-      if (x > this.originImage.nativeElement.width - this.lensWidth) {
-        x = this.originImage.nativeElement.width - this.lensWidth;
-      }
-      if (x < 0) {
-        x = 0;
-      }
-      if (y > this.originImage.nativeElement.height - this.lensHeight) {
-        y = this.originImage.nativeElement.height - this.lensHeight;
-      }
-      if (y < 0) {
-        y = 0;
-      }
-
-      this.lensX = -(pos.x * this.zoomCurrent - pos.x);
-      this.lensY = -(pos.y * this.zoomCurrent - pos.y);
-
-      this.ref.markForCheck();
-    }
-  }
-
   private getCursorPos(e) {
     let a,
       x = 0,
@@ -819,57 +796,87 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
     return { x: x, y: y };
   }
 
-  changeZoomLevel($event: WheelEvent) {
-    $event.deltaY < 0 ? this.zoomIn($event) : this.zoomOut($event);
-    this.moveLens($event);
-  }
-
   zoomIn(e) {
     e.stopPropagation();
-    this.zoomCurrent = Math.min(this.zoomCurrent + this.zoomDelta, this.zoomMax);
-    this.checkBackgroundPositionOffset();
+    this.zoom(-1, { x: this.originImage.nativeElement.width / 2, y: this.originImage.nativeElement.height / 2 });
   }
 
   zoomOut(e) {
     e.stopPropagation();
-    this.zoomCurrent = Math.max(this.zoomCurrent - this.zoomDelta, this.zoomMin);
-    this.checkBackgroundPositionOffset();
+    this.zoom(1, { x: this.originImage.nativeElement.width / 2, y: this.originImage.nativeElement.height / 2 });
   }
 
-  toggleLensMove(event) {
-    event.stopPropagation();
-    this.lastPosition = event;
-    this.isLensFreezed = this.mouseDrag || !this.isLensFreezed;
+  onwheel(e) {
+    let deltaY = 0;
+
+    e.preventDefault();
+
+    if (e.deltaY) {
+      // FireFox 17+ (IE9+, Chrome 31+?)
+      deltaY = e.deltaY;
+    } else if (e.wheelDelta) {
+      deltaY = -e.wheelDelta;
+    }
+    const offset = this.getCursorPos(e);
+
+    this.zoom(deltaY, offset);
   }
 
-  dragLens(event: DragEvent) {
-    console.log(`Event: ${event}`);
-  }
+  zoom(deltaY: number, offset) {
+    // Record the offset between the bg edge and cursor:
+    const bgCursorX = offset.x - this.bgPosX;
+    const bgCursorY = offset.y - this.bgPosY;
 
-  private checkBackgroundPositionOffset() {
-    // zoom-out can cause background position that has too much offset
-    if (this.originImage.nativeElement.width * this.zoomCurrent + this.lensX < this.originImage.nativeElement.width) {
-      if (this.lastPosition.x <= this.originImage.nativeElement.width / 2) {
-        this.lensX = 0;
-      } else {
-        this.lensX = -(this.originImage.nativeElement.width * this.zoomCurrent - this.originImage.nativeElement.width);
-      }
+    // Use the previous offset to get the percent offset between the bg edge and cursor:
+    const bgRatioX = bgCursorX / this.bgWidth;
+    const bgRatioY = bgCursorY / this.bgHeight;
+
+    // Update the bg size:
+    if (deltaY < 0) {
+      this.bgWidth += this.bgWidth * this.zoomDelta;
+      this.bgHeight += this.bgHeight * this.zoomDelta;
+    } else {
+      this.bgWidth -= this.bgWidth * this.zoomDelta;
+      this.bgHeight -= this.bgHeight * this.zoomDelta;
     }
 
-    if (this.originImage.nativeElement.height * this.zoomCurrent + this.lensY < this.originImage.nativeElement.height) {
-      if (this.lastPosition.y <= this.originImage.nativeElement.height / 2) {
-        this.lensY = 0;
-      } else {
-        this.lensY = -(this.originImage.nativeElement.height * this.zoomCurrent - this.originImage.nativeElement.height);
-      }
+    this.bgWidth = Math.min(this.imageWidth * this.zoomMax, this.bgWidth);
+    this.bgHeight = Math.min(this.imageHeight * this.zoomMax, this.bgHeight);
+
+    this.zoomCurrent = this.bgWidth / this.imageWidth;
+
+    // Take the percent offset and apply it to the new size:
+    this.bgPosX = offset.x - this.bgWidth * bgRatioX;
+    this.bgPosY = offset.y - this.bgHeight * bgRatioY;
+
+    // Prevent zooming out beyond the starting size
+    if (this.bgWidth <= this.imageWidth || this.bgHeight <= this.imageHeight) {
+      this.resetZoom();
     }
+
+    this.updateBgStyle();
   }
 
-  private resetZoom() {
-    this.zoomCurrent = 1.0;
-    this.lastPosition = null;
-    this.isLensFreezed = false;
-    this.lensX = 0;
-    this.lensY = 0;
+  updateBgStyle() {
+    if (this.bgPosX > 0) {
+      this.bgPosX = 0;
+    } else if (this.bgPosX < this.imageWidth - this.bgWidth) {
+      this.bgPosX = this.imageWidth - this.bgWidth;
+    }
+
+    if (this.bgPosY > 0) {
+      this.bgPosY = 0;
+    } else if (this.bgPosY < this.imageHeight - this.bgHeight) {
+      this.bgPosY = this.imageHeight - this.bgHeight;
+    }
+
+    this.ref.markForCheck();
+  }
+
+  resetZoom() {
+    this.bgWidth = this.imageWidth;
+    this.bgHeight = this.imageHeight;
+    this.bgPosX = this.bgPosY = 0;
+    this.zoomCurrent = this.zoomInitial;
   }
 }

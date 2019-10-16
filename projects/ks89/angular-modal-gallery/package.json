@@ -1,6 +1,6 @@
 {
   "name": "@ks89/angular-modal-gallery",
-  "version": "7.2.5",
+  "version": "7.2.50",
   "description": "Modal image gallery for Angular >=2",
   "license": "MIT",
   "author": "Stefano Cappa",
@@ -48,5 +48,8 @@
   },
   "bugs": {
     "url": "https://github.com/Ks89/angular-modal-gallery/issues"
+  },
+  "publishConfig": {
+    "registry": "https://repo.powerflow.cloud/repository/npm-cetin-private/"
   }
 }
