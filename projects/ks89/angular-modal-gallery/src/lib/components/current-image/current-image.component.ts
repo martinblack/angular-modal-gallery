@@ -549,6 +549,7 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
    */
   prevImage(action: Action = Action.NORMAL) {
     this.resetZoom();
+    this.updateBgStyle();
 
     // check if prevImage should be blocked
     if (this.isPreventSliding(0)) {
@@ -568,6 +569,8 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
    */
   nextImage(action: Action = Action.NORMAL) {
     this.resetZoom();
+    this.updateBgStyle();
+
     // check if nextImage should be blocked
     if (this.isPreventSliding(this.images.length - 1)) {
       return;

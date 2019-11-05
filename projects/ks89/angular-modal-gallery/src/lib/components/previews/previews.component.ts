@@ -174,6 +174,7 @@ export class PreviewsComponent extends AccessibleComponent implements OnInit, On
   ngOnChanges(changes: SimpleChanges) {
     const images: SimpleChange = changes.images;
     const currentImage: SimpleChange = changes.currentImage;
+    const previewConfig: SimpleChange = changes.previewConfig;
 
     let prev;
     let current;
@@ -194,6 +195,10 @@ export class PreviewsComponent extends AccessibleComponent implements OnInit, On
 
     if (prev && current && prev.id !== current.id) {
       this.updatePreviews(prev, current);
+    }
+
+    if (previewConfig && previewConfig.currentValue) {
+      this.configPreview = Object.assign({}, this.defaultPreviewConfig, this.previewConfig);
     }
   }
 

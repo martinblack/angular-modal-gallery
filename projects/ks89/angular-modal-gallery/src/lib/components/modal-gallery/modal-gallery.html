@@ -36,7 +36,13 @@
                         [currentImageConfig]="currentImageConfig"
                         (loadImage)="onImageLoad($event)"
                         (changeImage)="onChangeCurrentImage($event)"
-                        (close)="onCloseGallery($event)"></ks-current-image>
+                        (close)="onCloseGallery($event)">
+        <div>
+          <ng-content></ng-content>
+        </div>
+      </ks-current-image>
+
+
 
       <div>
         <ks-dots [images]="images"
