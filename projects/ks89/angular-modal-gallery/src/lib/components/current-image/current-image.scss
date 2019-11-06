@@ -138,7 +138,7 @@ $figcaption-right: 0;
     & figcaption {
       padding: $figcaption-padding;
       position: $figcaption-position;
-      bottom: $figcaption-bottom;
+      //bottom: $figcaption-bottom;
       left: $figcaption-left;
       right: $figcaption-right;
       z-index: 10002;
@@ -193,12 +193,45 @@ $figcaption-right: 0;
   height: 240px;
 }
 
-.zoom-btn {
- padding: 10px;
-  border: 1px solid white;
+.caption-btns {
 
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.42);
-    cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+
+  .caption-btn-group {
+    position: relative;
+
+    &:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background-color: white;
+    }
   }
+
+  .caption-btn {
+    padding: 10px;
+    border: 1px solid white;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.42);
+      cursor: pointer;
+    }
+
+    &.enabled {
+      background-color: rgba(0, 0, 0, 0.42);
+    }
+  }
+}
+
+
+.stats {
+  position: absolute;
+  bottom: 57px;
+  left: 0;
+  width: 100%;
+  transition: height .3s ease-in-out;
+  z-index: 10002;
 }

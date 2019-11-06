@@ -65,20 +65,29 @@
            (wheel)="onwheel($event)"
       ></div>
 
-      <ng-content></ng-content>
+      <div class="stats" *ngIf="showStats">
+        <ng-content></ng-content>
+      </div>
 
     </div>
 
     <figcaption *ngIf="getDescriptionToDisplay() !== ''" class="inside description d-flex justify-between align-center" ksDescription [description]="configCurrentImage?.description">
       <span [innerHTML]="getDescriptionToDisplay()"></span>
-      <div class="zoom-btns align-self-flex-end">
-        <i class="fa fa-minus zoom-btn" (click)="zoomOut($event)"></i>
+      <div class="caption-btns align-self-flex-end">
+
+        <div class="caption-btn-group m-r-20">
+          <i class="fa fa-info caption-btn m-r-20 vertical-separator" [ngClass]="{enabled: showStats}" (click)="toggleStats()"></i>
+        </div>
+
+        <i class="fa fa-minus caption-btn" (click)="zoomOut($event)"></i>
         <span class="current-zoom-level m-l-10 m-r-10">{{zoomCurrent | number:'1.1-1'}}x</span>
-        <i class="fa fa-plus zoom-btn" (click)="zoomIn($event)"></i>
+        <i class="fa fa-plus caption-btn" (click)="zoomIn($event)"></i>
       </div>
 
     </figcaption>
+
   </figure>
+
 
   <div class="right-sub-container">
     <ng-container *ngIf="slideConfig?.sidePreviews?.show">

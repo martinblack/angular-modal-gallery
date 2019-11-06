@@ -222,6 +222,8 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
 
   configSlide: SlideConfig;
 
+  showStats: boolean;
+
   /**
    * Private object without type to define all swipe actions used by hammerjs.
    */
@@ -333,16 +335,22 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
   }
 
   ngAfterViewInit(): void {
-    this.initImageZoom();
+    setTimeout(() => this.initImageZoom());
   }
 
   private initImageZoom() {
-    this.imageWidth = this.originImage.nativeElement.width;
-    this.imageHeight = this.originImage.nativeElement.height;
-    this.bgWidth = this.imageWidth * this.zoomInitial;
+    this.imageWidth = this.originImage.nativeElement.offsetWidth;
+    this.imageHeight = this.originImage.nativeElement.offsetHeight;
+
+    this.originImage.nativeElement.style.width = this.imageWidth;
+    this.originImage.nativeElement.style.height = this.imageHeight;
+
     this.bgHeight = this.imageHeight * this.zoomInitial;
     this.bgPosX = -(this.bgWidth - this.imageWidth) * this.initialX;
     this.bgPosY = -(this.bgHeight - this.imageHeight) * this.initialY;
+
+    this.resetZoom();
+    this.updateBgStyle();
   }
 
   /**
@@ -548,9 +556,6 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
    *  action that moved back to the previous image. `Action.NORMAL` by default.
    */
   prevImage(action: Action = Action.NORMAL) {
-    this.resetZoom();
-    this.updateBgStyle();
-
     // check if prevImage should be blocked
     if (this.isPreventSliding(0)) {
       return;
@@ -558,6 +563,8 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
     const prevImage: InternalLibImage = this.getPrevImage();
     this.loading = !prevImage.previouslyLoaded;
     this.changeImage.emit(new ImageModalEvent(action, getIndex(prevImage, this.images)));
+
+    setTimeout(() => this.initImageZoom());
 
     this.start$.next();
   }
@@ -568,9 +575,6 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
    *  action that moved to the next image. `Action.NORMAL` by default.
    */
   nextImage(action: Action = Action.NORMAL) {
-    this.resetZoom();
-    this.updateBgStyle();
-
     // check if nextImage should be blocked
     if (this.isPreventSliding(this.images.length - 1)) {
       return;
@@ -578,6 +582,8 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
     const nextImage: InternalLibImage = this.getNextImage();
     this.loading = !nextImage.previouslyLoaded;
     this.changeImage.emit(new ImageModalEvent(action, getIndex(nextImage, this.images)));
+
+    setTimeout(() => this.initImageZoom());
 
     this.start$.next();
   }
@@ -885,5 +891,9 @@ export class CurrentImageComponent extends AccessibleComponent implements OnInit
     this.bgHeight = this.imageHeight;
     this.bgPosX = this.bgPosY = 0;
     this.zoomCurrent = this.zoomInitial;
+  }
+
+  toggleStats() {
+    this.showStats = !this.showStats;
   }
 }

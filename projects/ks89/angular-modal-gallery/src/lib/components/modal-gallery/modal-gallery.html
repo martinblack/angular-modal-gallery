@@ -26,6 +26,7 @@
                         (customEmit)="onCustomEmit($event)"></ks-upper-buttons>
                         <!--(rotate)="onRotate($event)"-->
 
+
       <ks-current-image [id]="id"
                         [images]="images"
                         [currentImage]="currentImage"
@@ -37,12 +38,8 @@
                         (loadImage)="onImageLoad($event)"
                         (changeImage)="onChangeCurrentImage($event)"
                         (close)="onCloseGallery($event)">
-        <div>
-          <ng-content></ng-content>
-        </div>
+        <ng-content></ng-content>
       </ks-current-image>
-
-
 
       <div>
         <ks-dots [images]="images"
