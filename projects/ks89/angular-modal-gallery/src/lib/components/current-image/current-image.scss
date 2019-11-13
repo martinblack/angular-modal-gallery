@@ -138,7 +138,7 @@ $figcaption-right: 0;
     & figcaption {
       padding: $figcaption-padding;
       position: $figcaption-position;
-      //bottom: $figcaption-bottom;
+      bottom: $figcaption-bottom;
       left: $figcaption-left;
       right: $figcaption-right;
       z-index: 10002;
@@ -229,7 +229,7 @@ $figcaption-right: 0;
 
 .stats {
   position: absolute;
-  bottom: 0px;
+  bottom: 57px;
   left: 0;
   width: 100%;
   transition: height .3s ease-in-out;
